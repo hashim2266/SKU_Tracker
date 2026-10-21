@@ -1,5 +1,13 @@
 # SKU_System
 
+## Running the application
+1. Install Node.js and npm.
+2. Copy `.env.example` to `.env` in the project root.
+3. Set `REACT_APP_SUPABASE_URL` and `REACT_APP_SUPABASE_ANON_KEY` in `.env` using the values from your Supabase project's API settings.
+4. Run `npm install`, then `npm start`.
+
+The app displays setup instructions if either Supabase value is missing. Restart the development server after changing `.env`.
+
 ## Security: Supabase Key Rotation
 If an anon or service key is exposed, rotate it immediately in the Supabase dashboard.
 

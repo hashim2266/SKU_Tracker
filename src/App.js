@@ -4,10 +4,11 @@ import { LayoutDashboard, TrendingUp, CircleCheck as CheckCircle2, CircleAlert a
 import { RadialBarChart, RadialBar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import './App.css';
 
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.REACT_APP_SUPABASE_ANON_KEY
-);
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
 
 const SECTIONS = [
   "Seksyen Kualiti, Majlis & Protokol (SKMP)",
@@ -112,6 +113,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return undefined;
+    }
+
     Promise.all([fetchData(), fetchRemarks()]).finally(() => setLoading(false));
 
     const kpiChannel = supabase
@@ -191,6 +197,24 @@ export default function App() {
   const totalLow = useMemo(() => kpis.filter(k => parseFloat(k.percentage) < 70).length, [kpis]);
 
   const chartData = useMemo(() => stats.map(s => ({ name: s.short, avg: parseFloat(s.avg), fill: getColor(s.avg) })), [stats]);
+
+  if (!supabase) return (
+    <main className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
+      <section className="max-w-xl rounded-xl bg-white p-8 shadow-lg">
+        <h1 className="mb-3 text-xl font-bold text-slate-900">Konfigurasi Supabase diperlukan</h1>
+        <p className="mb-5 text-sm leading-6 text-slate-600">
+          Aplikasi tidak dapat memuatkan data kerana tetapan Supabase belum dikonfigurasi.
+          Tambahkan URL projek dan anon key ke fail <code>.env</code> di folder projek:
+        </p>
+        <pre className="mb-5 overflow-x-auto rounded-lg bg-slate-100 p-4 text-sm text-slate-800">{`REACT_APP_SUPABASE_URL=https://your-project.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=your-anon-key`}</pre>
+        <p className="text-sm leading-6 text-slate-600">
+          Salin nilai sebenar daripada tetapan API projek Supabase anda, kemudian mulakan semula
+          aplikasi dengan <code>npm start</code>. Jangan gunakan service_role key dalam aplikasi web.
+        </p>
+      </section>
+    </main>
+  );
 
   if (loading) return (
     <div className="h-screen flex flex-col items-center justify-center bg-slate-50">
